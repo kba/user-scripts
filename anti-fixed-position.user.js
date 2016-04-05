@@ -1,15 +1,14 @@
 // ==UserScript==
-// @name         Anti Fixed header
+// @name         Relativize Fixed
 // @namespace    http://github.com/kba
-// @version      0.1
-// @description  Turns fixed headers (navbars and such) into relative positioned elements. Good for small screens.
+// @version      0.2
+// @description  Turns fixed elements (navbars and such) into relative positioned elements. Good for small screens.
 // @author       kba
 // @match        http://*/*
-// @grant        none
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
-(function() {
-    'use strict';
+function relativizeFixed() {
 	var elems = document.querySelectorAll('div,nav,header,footer');
 	for (var i = 0; i < elems.length; i++) {
 		var el = elems[i];
@@ -18,5 +17,5 @@
 			el.style.position = 'relative';
 		}
 	}
-
-})();
+}
+GM_registerMenuCommand('Relativize Fixed', relativizeFixed);
