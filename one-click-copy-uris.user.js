@@ -1,7 +1,8 @@
+
 // ==UserScript==
 // @name         One Click Copy Links to clipboard
 // @namespace    http://github.com/kba
-// @version      0.1
+// @version      0.2
 // @description  Adds buttons to text links and videos to copy the linked URI to clipboard in one click.
 // @author       kba
 // @match        */*
@@ -32,7 +33,7 @@ GM_config.init({
 			'default': false,
 		},
 
-		'video_timeout': {
+		'timeout': {
 			'label': 'Delay in ms before adding button to video',
 			'type': 'number',
 			'default': 1500,
@@ -155,14 +156,13 @@ function appendClipboardLink($el, $copyLink) {
 		$copyLink.addClass("failed");
 		$copyLink.html('<span>X</span>');
 	});
-	preventClickthrough(
 	$("<span>")
 		.on('click tap mousedown touchstart', function(evt) {
 			evt.stopPropagation();
 			return false;
 		})
 		.append($copyLink)
-		.insertAfter($el));
+		.insertAfter($el);
 }
 
 //
@@ -226,10 +226,12 @@ GM_registerMenuCommand("Videos: Add Copy Button", clippifyVideos, "v");
 if (GM_config.get('auto_video')) {
 	setTimeout(function() {
 		$("video").one('progress', clippifyVideo);
-	}, GM_config.get('video_timeout'));
+	}, GM_config.get('timeout'));
 }
 if (GM_config.get('auto_text')) {
-	clippifyLinks();
+	setTimeout(function() {
+		clippifyLinks();
+	}, GM_config.get('timeout'));
 }
 
 
