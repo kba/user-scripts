@@ -1,6 +1,6 @@
 
 // ==UserScript==
-// @name         One Click Copy Links to clipboard
+// @name         One Click Copy URIs
 // @namespace    http://github.com/kba
 // @version      0.2
 // @description  Adds buttons to text links and videos to copy the linked URI to clipboard in one click.

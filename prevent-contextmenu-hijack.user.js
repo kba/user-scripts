@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Allow Right Click
+// @name         Prevent contextmenu hijack
 // @namespace    http://github.com/kba
 // @version      0.1
 // @description  Removes all listeners to the contextmenu event
