@@ -40,12 +40,19 @@ function saveHistory(hist) {
 	var name = getCurrentHistoryName();
 	return GM_setValue("history_" + name, JSON.stringify(hist));
 }
+
+function cleanURL(url) {
+	if (url.substring(0, 1) === '/') {
+		url = window.location.protocol + "//" + window.location.host + url;
+	}
+	return url.replace(/#.*$/, "").toLowerCase();
+}
+
 function addHistory(url, hist) {
-	url = url.replace(/#.*/, "");
 	if (!hist) {
 		hist = loadHistory();
 	}
-	hist[url] = new Date();
+	hist[cleanURL(url)] = new Date();
 	saveHistory(hist);
 }
 
@@ -55,14 +62,16 @@ function addHistory(url, hist) {
 function afterPageLoad() {
 	var hist = loadHistory();
 	addHistory(window.location.href, hist);
-	$("a").each(function() {
+	markVisited();
+}
+
+function markVisited() {
+	var hist = loadHistory();
+	$("a[href]").each(function() {
 		var $a = $(this);
-		var linkUrl = $a.attr("href");
-		if (!linkUrl) {
-			return;
-		}
-		linkUrl = linkUrl.replace(/#.*/, "").toLowerCase();
-		if (hist[linkUrl] !== "undefined") {
+		var linkUrl = cleanURL($a.attr("href"));
+		console.log(linkUrl, hist[linkUrl]);
+		if (hist[linkUrl]) {
 			$a.addClass("gm-history-visited");
 		}
 	});
@@ -121,6 +130,7 @@ function promptName() {
 }
 
 function toggleBlurVisited() {
+	markVisited();
 	$(".gm-history-visited").toggleClass('gm-history-blurred');
 }
 
