@@ -81,20 +81,32 @@ function addDialog() {
 	$(
 `
 <div id="${DIALOG_ID}" title="Config GM History">
-	<textarea></textarea>
+	<div>
+		<h3>Current History</h3>
+		<input placeholder='${getCurrentHistoryName()}' type='text'></input>
+	</div>
+	<div>
+		<h3>Edit History</h3>
+		<textarea rows=10></textarea>
+	</div>
 </div>
 `
 	).appendTo('body')
 	.dialog({
 		autoOpen: false,
 		modal: true,
-		resizable: false,
-		width: "100vw",
+		resizable: true,
+		height: 300,
+		width: "95vw",
 		buttons: {
-			"Yeah!": function() {
-				$(this).dialog("close");
-			},
-			"Sure, Why Not": function() {
+			"Save": function() {
+				var hist = {};
+				var lines = $(`#${DIALOG_ID} textarea`).val().split(/\n/);
+				for (var i = 0; i < lines.length ; i++) {
+					var line = lines[i].split(/\s*::\s*/);
+					hist[line[1]] = line[0];
+				}
+				saveHistory(hist);
 				$(this).dialog("close");
 			}
 		}
@@ -108,8 +120,8 @@ function promptName() {
 	}
 }
 
-function blurVisited() {
-	GM_addStyle(".gm-history-visited, .gm-history-visited * { opacity: 0.2 !important }");
+function toggleBlurVisited() {
+	$(".gm-history-visited").toggleClass('gm-history-blurred');
 }
 
 (function() {
@@ -117,12 +129,16 @@ function blurVisited() {
 	GM_addStyle(GM_getResourceText("jquery_ui_theme"));
 	GM_addStyle(
 	`
-	#${DIALOG_ID} textarea { width: 100%; }
+	.gm-history-blurred, .gm-history-blurred * { opacity: 0.2 !important }
+	#${DIALOG_ID} { overflow-y: scroll; max-height: 100%; }
+	#${DIALOG_ID} h3 { width: 20%; float: left; }
+	#${DIALOG_ID} h3 + * { width: 75%; float:right; }
+	#${DIALOG_ID} div { clear: left; }
 	`);
 	afterPageLoad();
 	addDialog();
 	GM_registerMenuCommand("Configure History", openDialog, "f");
-	GM_registerMenuCommand("Blur visited", blurVisited, "b");
+	GM_registerMenuCommand("Blur visited", toggleBlurVisited, "b");
 }());
 
 // vim: sw=4 noet :
