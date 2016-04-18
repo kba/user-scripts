@@ -5,6 +5,7 @@
 // @description  try to take over the world!
 // @author       kba
 // @match        */*
+// @noframes
 // @grant        GM_addStyle
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -24,7 +25,29 @@
 /*global GM_setValue */
 /*global GM_getValue */
 
-var DIALOG_ID = 'gm-history-dialog';
+var ID_CONFIG = 'gm-history-dialog';
+var CLASS_VISITED = 'gm-history-visited';
+var CLASS_BLURRED = 'gm-history-class-blurred';
+var GM_HISTORY_CSS = `
+	.${CLASS_BLURRED}, .${CLASS_BLURRED} * { opacity: 0.2 !important }
+	#${ID_CONFIG} { overflow-y: scroll; max-height: 100%; }
+	#${ID_CONFIG} h3 { width: 20%; float: left; }
+	#${ID_CONFIG} h3 + * { width: 75%; float:right; }
+	#${ID_CONFIG} div { clear: left; }
+`;
+var HTML_CONFIG = `
+<div id="${ID_CONFIG}" title="Config GM History">
+	<div>
+		<h3>Current History</h3>
+		<input type='text'></input>
+	</div>
+	<div>
+		<h3>Edit History</h3>
+		<textarea rows=10></textarea>
+	</div>
+</div>
+`;
+
 
 function getCurrentHistoryName() {
 	return GM_getValue("current", "default");
@@ -45,7 +68,10 @@ function cleanURL(url) {
 	if (url.substring(0, 1) === '/') {
 		url = window.location.protocol + "//" + window.location.host + url;
 	}
-	return url.replace(/#.*$/, "").toLowerCase();
+	return url
+		.replace(/#.*$/, "")
+		.replace(/&pkey.*$/, '')
+		.toLowerCase();
 }
 
 function addHistory(url, hist) {
@@ -67,12 +93,12 @@ function afterPageLoad() {
 
 function markVisited() {
 	var hist = loadHistory();
+	console.log("History size: " + Object.keys(hist).length);
 	$("a[href]").each(function() {
 		var $a = $(this);
 		var linkUrl = cleanURL($a.attr("href"));
-		console.log(linkUrl, hist[linkUrl]);
 		if (hist[linkUrl]) {
-			$a.addClass("gm-history-visited");
+			$a.addClass(CLASS_VISITED);
 		}
 	});
 }
@@ -83,25 +109,12 @@ function openDialog() {
 	for (var url in hist) {
 		asText += hist[url] + " :: " + url + "\n";
 	}
-	$(`#${DIALOG_ID} textarea`).html(asText);
-	$(`#${DIALOG_ID}`).dialog("open");
+	$(`#${ID_CONFIG} textarea`).html(asText);
+	$(`#${ID_CONFIG}`).dialog("open");
 }
+
 function addDialog() {
-	$(
-`
-<div id="${DIALOG_ID}" title="Config GM History">
-	<div>
-		<h3>Current History</h3>
-		<input placeholder='${getCurrentHistoryName()}' type='text'></input>
-	</div>
-	<div>
-		<h3>Edit History</h3>
-		<textarea rows=10></textarea>
-	</div>
-</div>
-`
-	).appendTo('body')
-	.dialog({
+	$(HTML_CONFIG).appendTo('body').dialog({
 		autoOpen: false,
 		modal: true,
 		resizable: true,
@@ -110,7 +123,7 @@ function addDialog() {
 		buttons: {
 			"Save": function() {
 				var hist = {};
-				var lines = $(`#${DIALOG_ID} textarea`).val().split(/\n/);
+				var lines = $(`#${ID_CONFIG} textarea`).val().split(/\n/);
 				for (var i = 0; i < lines.length ; i++) {
 					var line = lines[i].split(/\s*::\s*/);
 					hist[line[1]] = line[0];
@@ -120,6 +133,7 @@ function addDialog() {
 			}
 		}
 	});
+	$(`#${ID_CONFIG} input`).attr('placeholder',  getCurrentHistoryName());
 }
 
 function promptName() {
@@ -131,20 +145,15 @@ function promptName() {
 
 function toggleBlurVisited() {
 	markVisited();
-	$(".gm-history-visited").toggleClass('gm-history-blurred');
+	var visited = $(`.${CLASS_VISITED}`);
+	console.log(`Marking ${visited.length} links blurred`);
+	visited.addClass(CLASS_BLURRED);
 }
 
 (function() {
 	"use strict";
 	GM_addStyle(GM_getResourceText("jquery_ui_theme"));
-	GM_addStyle(
-	`
-	.gm-history-blurred, .gm-history-blurred * { opacity: 0.2 !important }
-	#${DIALOG_ID} { overflow-y: scroll; max-height: 100%; }
-	#${DIALOG_ID} h3 { width: 20%; float: left; }
-	#${DIALOG_ID} h3 + * { width: 75%; float:right; }
-	#${DIALOG_ID} div { clear: left; }
-	`);
+	GM_addStyle(GM_HISTORY_CSS);
 	afterPageLoad();
 	addDialog();
 	GM_registerMenuCommand("Configure History", openDialog, "f");
